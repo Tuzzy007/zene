@@ -1,1 +1,1 @@
-(Névtelen.png)
+![Videó letöltő/vágó](Névtelen.png)
