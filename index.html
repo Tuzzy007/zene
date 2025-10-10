@@ -1,193 +1,415 @@
 <!doctype html>
 <html lang="hu">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Zene kitaláló</title>
-  <style>
-    :root { color-scheme: dark; }
-    body {
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-      margin: 20px;
-      background: #121212;
-      color: #eaeaea;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
-    .card {
-      background: #1e1e1e;
-      border-radius: 16px;
-      padding: 20px;
-      width: 100%;
-      max-width: 600px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-    }
-    h1 {
-      margin: 0 0 10px;
-      font-size: 1.4rem;
-      text-align: center;
-    }
-    .choices {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 12px;
-    }
-    button {
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #333;
-      background: #2a2a2a;
-      color: #fff;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
-    }
-    button:hover:not(:disabled) { background: #3a3a3a; transform: scale(1.02); }
-    button:disabled { opacity: 0.6; cursor: default; }
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 12px;
-      align-items: center;
-    }
-    .controls button { flex: 1; }
-    .status {
-      margin-top: 12px;
-      font-weight: 600;
-      text-align: center;
-    }
-    .small { font-size: 13px; color: #aaa; text-align: center; }
-    .correct { background: #164e29 !important; border-color: #2ecc71 !important; }
-    .wrong { background: #5a1a1a !important; border-color: #e74c3c !important; }
-    @media (max-width: 500px) {
-      .card { padding: 15px; }
-      h1 { font-size: 1.2rem; }
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Zene-kitaláló</title>
+<style>
+:root {
+  color-scheme: dark;
+  --primary: #2ecc71;
+  --secondary: #27ae60;
+  --bg: rgba(30,30,30,0.9);
+  --card-bg: rgba(40,40,40,0.85);
+  --btn-bg: #2a2a2a;
+  --btn-hover: #3a3a3a;
+  --correct: #164e29;
+  --wrong: #5a1a1a;
+}
+
+* { box-sizing: border-box; margin:0; padding:0; }
+
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+  background: linear-gradient(135deg, #121212, #1a1a1a);
+  color: #eaeaea;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.card {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 30px 25px;
+  width: 100%;
+  max-width: 720px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+h1 {
+  text-align: center;
+  font-size: 2rem;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.small {
+  font-size: 0.875rem;
+  color: #aaa;
+  text-align: center;
+}
+
+input[type="file"] {
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid #444;
+  background: #222;
+  color: #fff;
+  width: 100%;
+}
+
+label, select {
+  font-size: 0.95rem;
+  margin-top: 5px;
+}
+
+select {
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid #444;
+  background: #222;
+  color: #fff;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+button {
+  padding: 12px 18px;
+  border-radius: 12px;
+  border: 1px solid #333;
+  background: var(--btn-bg);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1 1 140px;
+  text-align: center;
+}
+
+button:hover:not(:disabled) {
+  background: var(--btn-hover);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.correct { background: var(--correct) !important; border-color: var(--primary) !important; }
+.wrong { background: var(--wrong) !important; border-color: #e74c3c !important; }
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#playBtn {
+  position: relative;
+  overflow: hidden;
+}
+#playBtn .fill {
+  position: absolute;
+  top:0; left:0; height:100%; width:0%;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  z-index: 0;
+  transition: width 0.1s linear;
+}
+#playBtn span { position: relative; z-index: 1; }
+
+.status {
+  font-weight: 600;
+  text-align: center;
+  font-size: 1rem;
+  margin-top: 5px;
+  min-height: 24px;
+}
+
+#miniConsole {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 300px;
+  max-height: 200px;
+  background: rgba(30,30,30,0.95);
+  color: #0f0;
+  font-family: 'Fira Mono', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 12px;
+  border-radius: 14px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.7);
+  overflow-y: auto;
+  border: 1px solid #0f0;
+  z-index: 999;
+}
+
+#miniConsole div {
+  padding: 2px 0;
+  transition: color 0.3s ease;
+}
+
+#miniConsole div.info { color: #0ff; }
+#miniConsole div.warn { color: #ff0; }
+#miniConsole div.error { color: #f55; }
+#miniConsole div.success { color: #2ecc71; }
+
+#miniConsole::-webkit-scrollbar {
+  width: 8px;
+}
+
+#miniConsole::-webkit-scrollbar-track {
+  background: #111;
+  border-radius: 10px;
+}
+
+#miniConsole::-webkit-scrollbar-thumb {
+  background: #0f0;
+  border-radius: 10px;
+}
+
+#miniConsole::-webkit-scrollbar-thumb:hover {
+  background: #2ecc71;
+}
+
+#round { text-align:center; font-weight:500; margin-bottom:8px; font-size:1rem; }
+
+</style>
 </head>
 <body>
-  <div class="card">
-    <h1>Zene-kitaláló 🎵</h1>
-    <p class="small">Válaszd ki a <strong>music</strong> mappát (mp3/m4a fájlokkal), majd kattints a <strong>Következő</strong> gombra!</p>
+<div class="card">
+  <h1>Zene-kitaláló 🎵</h1>
+  <p class="small">Válaszd ki a <strong>music</strong> mappát (mp3/m4a fájlokkal), majd kattints a <strong>Következő</strong> gombra!</p>
 
-    <div style="text-align:center;margin:10px 0;">
-      <input type="file" id="folderInput" webkitdirectory directory multiple />
+  <input type="file" id="folderInput" webkitdirectory directory multiple />
+
+  <label for="difficulty" id="difficultyLabel">Nehézség:</label>
+  <select id="difficulty">
+    <option value="10" data-min="2" data-max="3">Könnyű (10mp/2-3 opció)</option>
+    <option value="7" data-min="3" data-max="4">Közepes (7mp/3-4 opció)</option>
+    <option value="2" data-min="4" data-max="6">Nehéz (2mp/4-6 opció)</option>
+  </select>
+
+
+  <div id="round">Tölts be egy mappát a kezdéshez.</div>
+  <div class="choices" id="choices"></div>
+
+  <div class="controls">
+    <button id="playBtn"><div class="fill"></div><span>Lejátszás</span></button>
+    <button id="stopBtn">Leállít</button>
+    <button id="nextBtn">Következő</button>
+    <button id="replayBtn">Újra hallgatás (-2 pont)</button> <br>
+    <div style="margin-left:auto">
+      Pontok: <span id="score">0</span>
+      Zene: <span id="roundNum">0</span>.
     </div>
-
-    <div id="round">Tölts be egy mappát a kezdéshez.</div>
-
-    <div class="choices" id="choices"></div>
-
-    <div class="controls">
-      <button id="playBtn">Lejátszás</button>
-      <button id="stopBtn">Leállít</button>
-      <button id="nextBtn">Következő</button>
-      <div style="margin-left:auto">Pontok: <span id="score">0</span>/<span id="roundNum">0</span></div>
-    </div>
-
-    <div class="status" id="status"></div>
   </div>
 
-  <script>
-    let songs = [];
-    let current = null;
-    let score = 0;
-    let rounds = 0;
 
-    const playBtn = document.getElementById('playBtn');
-    const stopBtn = document.getElementById('stopBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const status = document.getElementById('status');
-    const choicesDiv = document.getElementById('choices');
-    const roundDiv = document.getElementById('round');
-    const scoreSpan = document.getElementById('score');
-    const roundNumSpan = document.getElementById('roundNum');
-    const folderInput = document.getElementById('folderInput');
-    const audio = new Audio();
+  <div class="status" id="status"></div>
+</div>
+<div id="miniConsole"></div>
 
-    folderInput.addEventListener('change', e => {
-      const files = Array.from(e.target.files);
-      const valid = files.filter(f => f.name.endsWith('.mp3') || f.name.endsWith('.m4a'));
-      if (!valid.length) {
-        roundDiv.textContent = 'Nem találtam megfelelő hangfájlt a mappában!';
-        return;
-      }
-      songs = valid.map(f => ({ file: URL.createObjectURL(f), title: f.name.replace(/\.[^/.]+$/, '') }));
-      roundDiv.textContent = `${songs.length} zene betöltve! Kattints a Következő gombra a kezdéshez.`;
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  let songs=[],remainingSongs=[],current=null,score=parseInt(getCookie('score')||0),rounds=0,playStart=0,PLAY_DURATION=10;
+  const playBtn=document.getElementById('playBtn');
+  const stopBtn=document.getElementById('stopBtn');
+  const nextBtn=document.getElementById('nextBtn');
+  const replayBtn=document.getElementById('replayBtn');
+  const status=document.getElementById('status');
+  const choicesDiv=document.getElementById('choices');
+  const roundDiv=document.getElementById('round');
+  const scoreSpan=document.getElementById('score');
+  const roundNumSpan=document.getElementById('roundNum');
+  const folderInput=document.getElementById('folderInput');
+  const difficulty=document.getElementById('difficulty');
+  const miniConsole=document.getElementById('miniConsole');
+  const audio=new Audio();
+  scoreSpan.textContent=score;
+  let hasPlayed = false;
+  let playedOnce = false;
+  let isPaused = false;
+  let warnedNotLoaded = false;
+
+  function logMiniConsole(msg, type='info'){
+    const line = document.createElement('div');
+    line.textContent = msg;
+    line.className = type;
+    miniConsole.appendChild(line);
+    miniConsole.scrollTop = miniConsole.scrollHeight;
+  }
+
+  function formatTime(t){const m=Math.floor(t/60);const s=Math.floor(t%60);return `${m}:${s.toString().padStart(2,'0')}`;}
+  function setCookie(n,v,d=365){let x=new Date();x.setTime(x.getTime()+(d*24*60*60*1000));document.cookie=n+"="+v+";expires="+x.toUTCString()+";path=/";}
+  function getCookie(n){let v=document.cookie.match('(^|;) ?'+n+'=([^;]*)(;|$)'); return v?v[2]:null;}
+
+  folderInput.addEventListener('change', e=>{
+    const files=Array.from(e.target.files).filter(f=>f.name.endsWith('.mp3')||f.name.endsWith('.m4a'));
+    if(!files.length){roundDiv.textContent='Nem találtam megfelelő hangfájlt!'; return;}
+    songs=files.map(f=>({file:URL.createObjectURL(f),title:f.name.replace(/\.[^/.]+$/,'')}));
+    remainingSongs=[...songs]; rounds=0; roundNumSpan.textContent=0; choicesDiv.innerHTML=''; miniConsole.innerHTML=''; roundDiv.textContent=`${songs.length} zene betöltve!`;
+  });
+
+  function shuffleArray(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}
+
+  function getOptionCount(){const opt=difficulty.options[difficulty.selectedIndex]; const min=parseInt(opt.dataset.min), max=parseInt(opt.dataset.max); return Math.floor(Math.random()*(max-min+1))+min;}
+
+  function nextRound(){
+    audio.pause(); audio.currentTime=0; const fill=playBtn.querySelector('.fill'); if(fill) fill.style.width='0%';
+    if(remainingSongs.length<3){roundDiv.textContent='Legalább 3 különböző zene kell a játékhoz!'; return;}
+    status.textContent=''; choicesDiv.innerHTML='';
+
+    const randomIndex=Math.floor(Math.random()*remainingSongs.length);
+    const song=remainingSongs.splice(randomIndex,1)[0];
+    current=songs.findIndex(s=>s.title===song.title); rounds++; roundNumSpan.textContent=rounds;
+
+    // Nehézség alapján opciók száma
+    const optionCount=getOptionCount();
+    const available=songs.filter(s=>s.title!==song.title); shuffleArray(available);
+    const options=[song,...available.slice(0,optionCount-1)]; shuffleArray(options);
+
+    options.forEach(opt=>{
+      const btn=document.createElement('button'); btn.textContent=opt.title;
+      btn.onclick=()=>{
+        Array.from(choicesDiv.children).forEach(b=>b.disabled=true);
+        let pts=parseInt(difficulty.value)==10?1:parseInt(difficulty.value)==7?3:5;
+        if(opt.title===song.title){score+=pts; status.textContent='✅ Helyes!'; btn.classList.add('correct'); replayBtn.disabled = true;}
+        else{status.textContent='❌ Rossz. A helyes válasz: '+song.title; btn.classList.add('wrong');
+          Array.from(choicesDiv.children).forEach(b=>{if(b.textContent===song.title)b.classList.add('correct');}); replayBtn.disabled = true;}
+        scoreSpan.textContent=score; setCookie('score',score);
+      };
+      choicesDiv.appendChild(btn);
     });
 
-    function shuffleArray(a) {
-      for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-      }
-    }
-
-    function nextRound() {
-      if (songs.length < 3) {
-        roundDiv.textContent = 'Legalább 3 zenét tölts be a mappából!';
+    roundDiv.innerHTML='<strong>Válaszd ki a helyes címet:</strong>';
+    audio.src=song.file; audio.load();
+    audio.onloadedmetadata = () => {
+      const duration = audio.duration;
+      if (!isFinite(duration) || duration <= 0) {
+        playStart = 0;
+        logMiniConsole('⚠️ A zene még nem töltődött be teljesen', 'warn');
         return;
       }
-      status.textContent = '';
-      choicesDiv.innerHTML = '';
-
-      current = Math.floor(Math.random() * songs.length);
-      rounds++;
-      roundNumSpan.textContent = rounds;
-
-      const indices = new Set([current]);
-      while (indices.size < 3) indices.add(Math.floor(Math.random() * songs.length));
-      const opts = Array.from(indices);
-      shuffleArray(opts);
-
-      opts.forEach(idx => {
-        const btn = document.createElement('button');
-        btn.textContent = songs[idx].title;
-        btn.dataset.idx = idx;
-        btn.onclick = () => {
-          Array.from(choicesDiv.children).forEach(b => b.disabled = true);
-          const chosen = Number(btn.dataset.idx);
-          if (chosen === current) {
-            score++;
-            status.textContent = '✅ Helyes!';
-            btn.classList.add('correct');
-          } else {
-            status.textContent = '❌ Rossz. A helyes válasz: ' + songs[current].title;
-            btn.classList.add('wrong');
-            Array.from(choicesDiv.children).forEach(b => {
-              if (Number(b.dataset.idx) === current) b.classList.add('correct');
-            });
-          }
-          scoreSpan.textContent = score;
-        };
-        choicesDiv.appendChild(btn);
-      });
-
-      roundDiv.innerHTML = '<strong>Válaszd ki a helyes címet:</strong>';
-      audio.src = songs[current].file;
-      audio.load();
-    }
-
-    playBtn.onclick = () => {
-      if (!audio.src) {
-        status.textContent = 'Nincs betöltött dal.';
-        return;
-      }
-      audio.currentTime = 0;
-      audio.play().catch(err => {
-        status.textContent = 'Nem tudja lejátszani: ' + err.message;
-      });
+    
+      const half = duration / 2;
+      const maxStart = Math.max(0, half - parseInt(difficulty.value));
+      playStart = Math.random() * maxStart;
+      PLAY_DURATION = parseInt(difficulty.value);
+      logMiniConsole('🎧 Random részlet: ' + formatTime(playStart) + '–' + formatTime(playStart + PLAY_DURATION), 'success');
     };
+  }
 
-    stopBtn.onclick = () => {
+  function safePlay(start, duration) {
+    const fill = playBtn.querySelector('.fill'); 
+    if (!fill) return;
+
+    if (isPaused) {
+      audio.play().then(() => logMiniConsole('▶️ Folytatás', 'info')).catch(()=>logMiniConsole('⚠️ A zene nem indult el', 'warn'));
+      isPaused = false;
+      requestAnimationFrame(updateProgress);
+      return;
+    }
+
+    if (playedOnce) return;
+
+    audio.currentTime = start;
+    const endTime = start + duration;
+    let hasHeardHalfSec = false;
+
+    function tryPlay() {
+      audio.play().then(() => {
+        logMiniConsole(`🎵 Lejátszás: ${formatTime(start)}–${formatTime(endTime)}`, 'info');
+      }).catch(() => {
+        logMiniConsole('⚠️ A zene még nem indult el, próbálkozunk újra...', 'warn');
+        setTimeout(tryPlay, 200);
+      });
+    }
+    tryPlay();
+
+    const stopHandler = () => {
+      if (!hasHeardHalfSec && audio.currentTime - start >= 1) {
+        hasHeardHalfSec = true;
+        playedOnce = true;
+        logMiniConsole('✅ Zenéből hallgattál már 1 mp-et, a play gomb innentől nem indítható újra.', 'success');
+      }
+      if (!hasHeardHalfSec && audio.currentTime - start < 0.5 && audio.paused && !warnedNotLoaded) {
+        logMiniConsole('⚠️ A zene még nem töltődött be.', 'warn');
+      }
+      if (audio.currentTime >= endTime) {
+        audio.pause();
+        audio.removeEventListener('timeupdate', stopHandler);
+      }
+    };
+    audio.addEventListener('timeupdate', stopHandler);
+
+    function updateProgress() {
+      if (audio.paused) return;
+      const p = ((audio.currentTime - start)/duration)*100;
+      fill.style.width = Math.min(Math.max(p,0),100)+'%';
+      requestAnimationFrame(updateProgress);
+    }
+    requestAnimationFrame(updateProgress);
+  }
+
+
+  // Gombok kezelése
+  playBtn.onclick = () => safePlay(playStart, PLAY_DURATION);
+
+  stopBtn.onclick = () => {
+    if (!audio.paused) {
       audio.pause();
-      audio.currentTime = 0;
-    };
+      isPaused = true;
+      logMiniConsole('⏸️ Lejátszás szüneteltetve', 'info');
+    }
+  };
 
-    nextBtn.onclick = () => nextRound();
-  </script>
+  nextBtn.onclick = () => {
+    difficulty.style.display = 'none';
+    document.getElementById('difficultyLabel').style.display = 'none';
+    playedOnce = false; 
+    isPaused = false;
+    nextRound();
+    replayBtn.disabled = false;
+  };
+
+
+
+  replayBtn.onclick = () => {
+    if(score < 2) {
+      logMiniConsole('⚠️ Nincs elég pont az újrajátszáshoz!', 'warn');
+      return;
+    }
+    score -= 2;
+    scoreSpan.textContent = score;
+    setCookie('score', score);
+    logMiniConsole('♻️ Újrajátszás: -2 pont', 'info');
+    isPaused = false;
+    playedOnce = false;
+    safePlay(playStart, PLAY_DURATION);
+  };
+
+});
+</script>
 </body>
 </html>
